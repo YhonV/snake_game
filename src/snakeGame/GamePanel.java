@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -45,7 +46,9 @@ public class GamePanel extends JPanel implements ActionListener{
 	Random random;
 	
 	BufferedImage appleImage;
-	
+	BufferedImage snakeHead;
+	BufferedImage snakeBody;
+	BufferedImage snakeTail;
 	// constructors
 	GamePanel(){
 		random = new Random();
@@ -72,21 +75,67 @@ public class GamePanel extends JPanel implements ActionListener{
 		
 		if (running) {
 			// con este codigo podemos ver cada uno de los units size representados en el panel
-			for (int i = 0; i < SCREEN_HEIGHT / UNIT_SIZE; i++) {
-				g.drawLine(i*UNIT_SIZE, 0, i*UNIT_SIZE, SCREEN_HEIGHT);
-				g.drawLine(0, i*UNIT_SIZE, SCREEN_WIDTH, i*UNIT_SIZE);
-			}
+			// for (int i = 0; i < SCREEN_HEIGHT / UNIT_SIZE; i++) {
+			// 	g.drawLine(i*UNIT_SIZE, 0, i*UNIT_SIZE, SCREEN_HEIGHT);
+			// 	g.drawLine(0, i*UNIT_SIZE, SCREEN_WIDTH, i*UNIT_SIZE);
+			// }
 			
-			// how does it know that has to apply the colors to the apple??
+
 			g.drawImage(appleImage, appleX, appleY, UNIT_SIZE, UNIT_SIZE, null);
 			
 			for(int i = 0; i < bodyParts; i++) {
 				if(i == 0) {
-					g.setColor(Color.green);
-					g.fillRect(x[i],y[i], UNIT_SIZE, UNIT_SIZE);
+					BufferedImage rotatedHead = snakeHead;
+					switch (direction) {
+						case 'U':
+							rotatedHead = rotateImage(snakeHead, -90);
+							break;
+						case 'D':
+								rotatedHead = rotateImage(snakeHead, 90);
+								break;
+						case 'L':
+							rotatedHead = rotateImage(snakeHead, 180);
+							break;
+						case 'R':
+							rotatedHead = snakeHead;
+							break;
+					}
+
+					g.drawImage(rotatedHead,x[i], y[i], UNIT_SIZE, UNIT_SIZE, null);
+					// g.setColor(Color.orange);
+					// g.fillRect(x[i],y[i], UNIT_SIZE, UNIT_SIZE);
+				} else if(i == bodyParts-1){
+					BufferedImage rotatedTail = snakeTail;
+					switch (direction) {
+						case 'U':
+							rotatedTail = rotateImage(snakeTail, 90);
+							break;
+						case 'D':
+								rotatedTail = rotateImage(snakeTail, -90);
+								break;
+						case 'L':
+							rotatedTail = snakeTail;
+							break;
+						case 'R':
+							rotatedTail = rotateImage(snakeTail, 180);;
+							break;
+					}
+
+					g.drawImage(rotatedTail,x[i], y[i], UNIT_SIZE, UNIT_SIZE, null);
 				} else {
-					g.setColor(new Color(45,180,0));	
-					g.fillRect(x[i],y[i], UNIT_SIZE, UNIT_SIZE);
+					BufferedImage rotatedBody = snakeBody;
+					switch (direction) {
+						case 'D':
+							rotatedBody = rotateImage(snakeBody, 90);
+							break;
+						case 'U':
+							rotatedBody = rotateImage(snakeBody, 90);
+							break;
+					
+					}
+					g.drawImage(rotatedBody,x[i], y[i], UNIT_SIZE, UNIT_SIZE, null);
+					// g.setColor(new Color(45,180,0));	
+					// g.fillRect(x[i],y[i], UNIT_SIZE, UNIT_SIZE);
 				}
 			}
 			
@@ -227,13 +276,30 @@ public class GamePanel extends JPanel implements ActionListener{
 	public void loadImage() {
 		try {
 			appleImage = ImageIO.read(getClass().getResource("Apple.png"));
-			
-			if (appleImage == null) {
+			snakeHead = ImageIO.read(getClass().getResource("snakeHead.png"));
+			snakeBody = ImageIO.read(getClass().getResource("snakeBody.png"));
+			snakeTail = ImageIO.read(getClass().getResource("snakeTail.png"));
+			if (appleImage == null || snakeHead == null || snakeBody == null || snakeTail == null) {
 				System.err.println("Imagen no encontrada");
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private BufferedImage rotateImage(BufferedImage image, double angle){
+		int width = image.getWidth();
+		int height = image.getHeight();
+
+		BufferedImage rotated = new BufferedImage(width, height, image.getType());
+		Graphics2D g2d = rotated.createGraphics();
+
+		g2d.translate(width/2, height/2);
+		g2d.rotate(Math.toRadians(angle));
+		g2d.translate(-width/2, -height/2);
+		g2d.drawImage(image, 0, 0, null);
+		g2d.dispose();
+		return rotated;
 	}
 
 }
